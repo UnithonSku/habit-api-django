@@ -23,7 +23,7 @@ SECRET_KEY = os.environ['INSTANCE_SECRET_KEY']
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    'elasticbeanstalk-ap-northeast-2-172467735284.s3.ap-northeast-2.amazonaws.com',
+    'habitapidjango-env.ap-northeast-2.elasticbeanstalk.com',
     '127.0.0.1',
 ]
 
