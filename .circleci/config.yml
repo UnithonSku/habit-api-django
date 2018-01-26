@@ -103,6 +103,7 @@ jobs:
           command: |
             . venv/bin/activate
             eb deploy
+
 workflows:
   version: 2
   build-deploy:
