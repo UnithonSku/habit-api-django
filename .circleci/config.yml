@@ -97,7 +97,7 @@ jobs:
           command: |
             . venv/bin/activate
             pip install awsebcli --upgrade
-            bash ./setub-eb.sh
+            bash ./setup-eb.sh
       - run:
           name: deploy
           command: |
