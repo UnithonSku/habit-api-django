@@ -99,3 +99,16 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# migrations
+migrations/
+
+# ide and editor
+.idea/
+.vscode/
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/config.yml
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
