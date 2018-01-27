@@ -51,7 +51,7 @@ jobs:
           name: make migrations
           command: |
             . venv/bin/activate
-            mysql.server start
+            sudo service mysql start
             python manage.py makemigrations todo_api
             python manage.py migrate
 
