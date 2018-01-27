@@ -79,6 +79,7 @@ jobs:
           name: deploy
           command: |
             . venv/bin/activate
+            bash ./migrate.sh
             eb deploy
 
 workflows:

@@ -24,7 +24,7 @@ class TodoView(APIView):
 
         try:
             todos = TodoModel.objects.filter(user=user).filter(
-                date__month=request.data['month']).filter(date__lte=datetime.date.today())
+                date__month=request.data['month']).filter(date__lte=datetime.date.today()).order_by('date')
             response = {
                 'user': user.id,
                 'todos': list()
@@ -55,7 +55,7 @@ class TodoCreateView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         if 'until' not in request.data:
-            new_todo = TodoModel(user=user, title=request.data['todo'])
+            new_todo = TodoModel(user=user, title=request.data['todo'], order=request.data['order'])
             new_todo.save()
 
             new_todo_serializer = TodoSerializer(new_todo)
@@ -77,7 +77,7 @@ class TodoCreateView(APIView):
 
             while date <= until:
                 new_todo = TodoModel(
-                    user=user, title=request.data['todo'], date=date)
+                    user=user, title=request.data['todo'], date=date, order=request.data['order'])
                 new_todo.save()
                 new_todo_serializer = TodoSerializer(new_todo)
                 response['created'].append(new_todo_serializer.data)
