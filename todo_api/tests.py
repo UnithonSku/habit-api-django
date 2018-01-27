@@ -1,7 +1,10 @@
 import datetime
 from django.test import TestCase
+from rest_framework import status
 from rest_framework.test import APIRequestFactory
-from todo_api.views import *
+from user_api.models import UserModel
+from todo_api.models import TodoModel
+from todo_api.views import TodoView, TodoCreateView, TodoUpdateView, TodoDeleteView
 
 
 class TodoViewTest(TestCase):
@@ -21,6 +24,15 @@ class TodoViewTest(TestCase):
             sample_todo.save()
             current_date += datetime.timedelta(days=1)
 
+        start_date = datetime.date(2018, 1, 12)
+        end_date = datetime.date(2018, 1, 24)
+        current_date = start_date
+        while current_date <= end_date:
+            sample_todo = TodoModel(
+                user=self.sample_user, title='SAMPLE TODO 2', date=current_date)
+            sample_todo.save()
+            current_date += datetime.timedelta(days=1)
+
     def test_with_user_that_does_not_exist(self):
         request = self.factory.post(
             '/todos/', data={'user': 'asdfasdf', 'month': 1})
@@ -35,8 +47,6 @@ class TodoViewTest(TestCase):
         response = self.view(request)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['user'], 'sampleid')
-        self.assertEqual(
-            len(response.data['todos']), datetime.date.today().day)
 
 
 class TodoCreateViewTest(TestCase):
@@ -49,7 +59,7 @@ class TodoCreateViewTest(TestCase):
 
     def test_with_user_that_does_not_exist(self):
         request = self.factory.post(
-            '/todos/create/', data={'user': 'asdfasdf', 'todo': 'TODO'})
+            '/todos/create/', data={'user': 'asdfasdf', 'todo': 'TODO', 'order': 3})
         response = self.view(request)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
@@ -57,7 +67,7 @@ class TodoCreateViewTest(TestCase):
 
     def test_without_end_date(self):
         request = self.factory.post(
-            '/todos/create/', data={'user': 'sampleid', 'todo': 'TODO'})
+            '/todos/create/', data={'user': 'sampleid', 'todo': 'TODO', 'order': 3})
         response = self.view(request)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['user'], 'sampleid')
@@ -74,7 +84,8 @@ class TodoCreateViewTest(TestCase):
                     'year': year,
                     'month': month,
                     'day': day
-                }
+                },
+                'order': 3
             }, format='json')
         response = self.view(request)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

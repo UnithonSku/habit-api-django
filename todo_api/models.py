@@ -11,3 +11,4 @@ class TodoModel(models.Model):
     title = models.CharField(max_length=100, default=None)
     date = models.DateField(default=datetime.date.today())
     done = models.BooleanField(default=False)
+    order = models.PositiveSmallIntegerField(default=1)
