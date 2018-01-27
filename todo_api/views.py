@@ -1,3 +1,4 @@
+import json
 import datetime
 
 from rest_framework import status
@@ -16,6 +17,9 @@ class TodoView(APIView):
     def post(self, request):
         print(request.data)
         print(request.POST)
+
+        print(request.data['user'])
+        print(request.data['month'])
 
         try:
             user = UserModel.objects.get(id=request.data['user'])
@@ -52,6 +56,8 @@ class TodoCreateView(APIView):
         print(request.data)
         print(request.POST)
 
+        print(request.data['order'])
+
         try:
             user = UserModel.objects.get(id=request.data['user'])
         except UserModel.DoesNotExist:
@@ -61,7 +67,7 @@ class TodoCreateView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         if 'until' not in request.data:
-            new_todo = TodoModel(user=user, title=request.data['todo'], order=request.data['order'])
+            new_todo = TodoModel(user=user, title=request.data['todo'], order=int(request.data['order'][1]))
             new_todo.save()
 
             new_todo_serializer = TodoSerializer(new_todo)
@@ -72,7 +78,15 @@ class TodoCreateView(APIView):
             }
             return Response(response, status=status.HTTP_201_CREATED)
         else:
-            year, month, day = request.data['until'].values()
+            print(request.data['until'][1:len(request.data['until']) - 1])
+            until_input = json.loads(request.data['until'][1:len(request.data['until']) - 1])
+            print(until_input)
+
+            year, month, day = until_input.values()
+            year = int(year)
+            month = int(month)
+            day = int(day)
+
             date = datetime.date.today()
             until = datetime.date(year, month, day)
 
@@ -83,7 +97,7 @@ class TodoCreateView(APIView):
 
             while date <= until:
                 new_todo = TodoModel(
-                    user=user, title=request.data['todo'], date=date, order=request.data['order'])
+                    user=user, title=request.data['todo'], date=date, order=int(request.data['order'][1]))
                 new_todo.save()
                 new_todo_serializer = TodoSerializer(new_todo)
                 response['created'].append(new_todo_serializer.data)
