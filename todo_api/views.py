@@ -14,6 +14,9 @@ class TodoView(APIView):
         return 'TODO read view. Allowed Method : POST'
 
     def post(self, request):
+        print(request.data)
+        print(request.POST)
+
         try:
             user = UserModel.objects.get(id=request.data['user'])
         except UserModel.DoesNotExist:
@@ -46,6 +49,9 @@ class TodoCreateView(APIView):
         return 'TODO create view. Allowed Method : POST'
 
     def post(self, request):
+        print(request.data)
+        print(request.POST)
+
         try:
             user = UserModel.objects.get(id=request.data['user'])
         except UserModel.DoesNotExist:
@@ -91,6 +97,9 @@ class TodoUpdateView(APIView):
         return 'TODO update view. Allowed Method : POST'
 
     def post(self, request):
+        print(request.data)
+        print(request.POST)
+
         token = request.data['user']
         todo_title = request.data['todo']
 
@@ -140,6 +149,9 @@ class TodoDeleteView(APIView):
         return 'TODO delete view. Allowed Method : POST'
 
     def post(self, request):
+        print(request.data)
+        print(request.POST)
+
         token = request.data['user']
         todo_title = request.data['todo']
 

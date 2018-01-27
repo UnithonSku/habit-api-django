@@ -8,6 +8,8 @@ from user_api.serializers import UserSerializer
 
 class UserView(APIView):
     def post(self, request):
+        print(request.data)
+        print(request.POST)
         token = request.data['user']
 
         try:
