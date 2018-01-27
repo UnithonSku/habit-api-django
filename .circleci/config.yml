@@ -42,7 +42,6 @@ jobs:
             python manage.py makemigrations collections_api --settings=habit_api_django.settings.dev
             python manage.py makemigrations todo_api --settings=habit_api_django.settings.dev
             python manage.py migrate --settings=habit_api_django.settings.dev
-            python manage.py test --settings=habit_api_django.settings.dev --verbosity 3
 
   deploy:
     docker:
