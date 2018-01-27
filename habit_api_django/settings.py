@@ -83,7 +83,7 @@ WSGI_APPLICATION = 'habit_api_django.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'habitapi-django-db',
+        'NAME': 'habitapi_django_db',
         'USER': os.environ['HABIT_API_USER'],
         'PASSWORD': os.environ['HABIT_API_PASSWORD'],
         'HOST': os.environ['HABIT_API_HOST'],
