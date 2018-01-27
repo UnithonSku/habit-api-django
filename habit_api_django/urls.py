@@ -16,7 +16,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+from habit_api_django.views import api_route
+
 urlpatterns = [
+    path('', api_route),
     path('admin/', admin.site.urls),
-    path('todos/', include('todo_api.urls'))
+    path('users/', include('user_api.urls')),
+    path('todos/', include('todo_api.urls')),
+    path('collections/', include('collections_api.urls'))
 ]

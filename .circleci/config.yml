@@ -38,9 +38,11 @@ jobs:
           name: make migrations and run tests
           command: |
             . venv/bin/activate
-            python manage.py makemigrations todo_api
-            python manage.py migrate
-            python manage.py test
+            python manage.py makemigrations user_api --settings=habit_api_django.settings.dev
+            python manage.py makemigrations collections_api --settings=habit_api_django.settings.dev
+            python manage.py makemigrations todo_api --settings=habit_api_django.settings.dev
+            python manage.py migrate --settings=habit_api_django.settings.dev
+            python manage.py test --settings=habit_api_django.settings.dev --verbosity 3
 
   deploy:
     docker:

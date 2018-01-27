@@ -1,7 +1,8 @@
 from django.contrib import admin
-from todo_api.models import *
+from user_api.models import UserModel
+from todo_api.models import TodoModel
+from collections_api.models import CharacterModel
 
-# Register your models here.
 admin.site.register(UserModel)
 admin.site.register(TodoModel)
 admin.site.register(CharacterModel)
