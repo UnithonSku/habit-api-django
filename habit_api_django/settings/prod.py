@@ -1,6 +1,6 @@
 from habit_api_django.settings.base import *
 
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
     'habitapidjango-env.ap-northeast-2.elasticbeanstalk.com',
