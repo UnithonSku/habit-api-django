@@ -4,7 +4,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from todo_api.models import UserModel, TodoModel
+from user_api.models import UserModel
+from todo_api.models import TodoModel
 from todo_api.serializers import TodoSerializer
 
 
@@ -21,19 +22,23 @@ class TodoView(APIView):
                 'error': 'User does not exist'
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        todos = TodoModel.objects.filter(
-            user=user).filter(date=datetime.date.today())
+        try:
+            todos = TodoModel.objects.filter(user=user).filter(
+                date__month=request.data['month']).filter(date__lte=datetime.date.today())
+            response = {
+                'user': user.id,
+                'todos': list()
+            }
 
-        response = {
-            'user': user.id,
-            'todos': list()
-        }
+            for todo in todos:
+                found_todo = TodoSerializer(todo)
+                response['todos'].append(found_todo.data)
 
-        for todo in todos:
-            found_todo = TodoSerializer(todo)
-            response['todos'].append(found_todo.data)
-
-        return Response(response, status=status.HTTP_200_OK)
+            return Response(response, status=status.HTTP_200_OK)
+        except KeyError:
+            return Response({
+                'error': 'Month must be specified'
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TodoCreateView(APIView):
@@ -49,16 +54,36 @@ class TodoCreateView(APIView):
                 'error': 'User does not exist'
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        new_todo = TodoModel(user=user, title=request.data['todo'])
-        new_todo.save()
+        if 'until' not in request.data:
+            new_todo = TodoModel(user=user, title=request.data['todo'])
+            new_todo.save()
 
-        new_todo_serializer = TodoSerializer(new_todo)
+            new_todo_serializer = TodoSerializer(new_todo)
 
-        response = {
-            'user': user.id,
-            'created': new_todo_serializer.data
-        }
-        return Response(response, status=status.HTTP_201_CREATED)
+            response = {
+                'user': user.id,
+                'created': new_todo_serializer.data
+            }
+            return Response(response, status=status.HTTP_201_CREATED)
+        else:
+            year, month, day = request.data['until'].values()
+            date = datetime.date.today()
+            until = datetime.date(year, month, day)
+
+            response = {
+                'user': user.id,
+                'created': list()
+            }
+
+            while date <= until:
+                new_todo = TodoModel(
+                    user=user, title=request.data['todo'], date=date)
+                new_todo.save()
+                new_todo_serializer = TodoSerializer(new_todo)
+                response['created'].append(new_todo_serializer.data)
+                date += datetime.timedelta(days=1)
+
+            return Response(response, status=status.HTTP_201_CREATED)
 
 
 class TodoUpdateView(APIView):
