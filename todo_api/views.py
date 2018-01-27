@@ -56,8 +56,6 @@ class TodoCreateView(APIView):
         print(request.data)
         print(request.POST)
 
-        print(request.data['order'])
-
         try:
             user = UserModel.objects.get(id=request.data['user'])
         except UserModel.DoesNotExist:
@@ -78,7 +76,7 @@ class TodoCreateView(APIView):
             }
             return Response(response, status=status.HTTP_201_CREATED)
         else:
-            until_input = json.loads(request.data)
+            until_input = json.loads(request.data['until'])
             print(until_input)
 
             year, month, day = until_input.values()
