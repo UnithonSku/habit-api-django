@@ -67,7 +67,7 @@ class TodoCreateView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         if 'until' not in request.data:
-            new_todo = TodoModel(user=user, title=request.data['todo'], order=int(request.data['order'][1]))
+            new_todo = TodoModel(user=user, title=request.data['todo'], order=int(request.data['order']))
             new_todo.save()
 
             new_todo_serializer = TodoSerializer(new_todo)
@@ -78,11 +78,7 @@ class TodoCreateView(APIView):
             }
             return Response(response, status=status.HTTP_201_CREATED)
         else:
-            n = len(request.data['until'])
-            print(request.data['until'][0])
-            print(request.data['until'][n - 1])
-
-            until_input = json.loads(request.data['until'][1:n - 1])
+            until_input = json.loads(request.data)
             print(until_input)
 
             year, month, day = until_input.values()
@@ -100,7 +96,7 @@ class TodoCreateView(APIView):
 
             while date <= until:
                 new_todo = TodoModel(
-                    user=user, title=request.data['todo'], date=date, order=int(request.data['order'][1]))
+                    user=user, title=request.data['todo'], date=date, order=int(request.data['order']))
                 new_todo.save()
                 new_todo_serializer = TodoSerializer(new_todo)
                 response['created'].append(new_todo_serializer.data)
