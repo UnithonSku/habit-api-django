@@ -11,22 +11,13 @@ import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
+#BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ['INSTANCE_SECRET_KEY']
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = [
-    'habitapidjango-env.ap-northeast-2.elasticbeanstalk.com',
-    '127.0.0.1',
-]
-
 
 # Application definition
 
@@ -81,18 +72,6 @@ WSGI_APPLICATION = 'habit_api_django.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ['HABIT_API_DATABASE'],
-        'USER': os.environ['HABIT_API_USER'],
-        'PASSWORD': os.environ['HABIT_API_PASSWORD'],
-        'HOST': os.environ['HABIT_API_HOST'],
-        'PORT': '3306',
-    }
-}
-
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
