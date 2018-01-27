@@ -11,7 +11,7 @@ class TodoModel(models.Model):
     user = models.ForeignKey(UserModel, on_delete=models.CASCADE, default=None)
     id = models.UUIDField(default=uuid.uuid4, primary_key=True)
     title = models.CharField(max_length=100, default=None)
-    date = models.DateField(default=timezone.now)
+    date = models.DateField(auto_now_add=True)
     done = models.BooleanField(default=False)
 
 
