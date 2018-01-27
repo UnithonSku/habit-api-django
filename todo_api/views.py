@@ -78,8 +78,11 @@ class TodoCreateView(APIView):
             }
             return Response(response, status=status.HTTP_201_CREATED)
         else:
-            print(request.data['until'][1:len(request.data['until']) - 1])
-            until_input = json.loads(request.data['until'][1:len(request.data['until']) - 1])
+            n = len(request.data['until'])
+            print(request.data['until'][0])
+            print(request.data['until'][n - 1])
+
+            until_input = json.loads(request.data['until'][1:n - 1])
             print(until_input)
 
             year, month, day = until_input.values()
