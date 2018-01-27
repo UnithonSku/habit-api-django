@@ -17,13 +17,13 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'b!5y#@(m!ok#d!&zjr8gz4_w1+!bfk+d&d0tbnj8lyti$m3t^8'
+SECRET_KEY = os.environ['INSTANCE_SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    'elasticbeanstalk-ap-northeast-2-172467735284.s3.ap-northeast-2.amazonaws.com',
+    'habitapidjango-env.ap-northeast-2.elasticbeanstalk.com',
     '127.0.0.1',
 ]
 
@@ -83,7 +83,7 @@ WSGI_APPLICATION = 'habit_api_django.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ['HABIT_API_DATABASE']
+        'NAME': os.environ['HABIT_API_DATABASE'],
         'USER': os.environ['HABIT_API_USER'],
         'PASSWORD': os.environ['HABIT_API_PASSWORD'],
         'HOST': os.environ['HABIT_API_HOST'],

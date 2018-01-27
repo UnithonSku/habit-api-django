@@ -10,12 +10,6 @@ jobs:
       # use `-browsers` prefix for selenium tests, e.g. `3.6.1-browsers`
       - image: circleci/python:latest
 
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      # - image: circleci/postgres:9.4
-      - image: circleci/mysql:5.7.18
-
     working_directory: ~/repo
 
     steps:
@@ -34,42 +28,23 @@ jobs:
             python3 -m venv venv
             . venv/bin/activate
             pip install -r requirements.txt
+
       - save_cache:
           paths:
             - ./venv
           key: v1-dependencies-{{ checksum "requirements.txt" }}
 
-  test:
-    # run tests!
-    # this example uses Django's built-in test-runner
-    # other common Python testing frameworks include pytest and nose
-    # https://pytest.org
-    # https://nose.readthedocs.io
-    docker:
-      - image: circleci/python:latest
-      - image: circleci/mysql:5.7.18
-    steps:
-      - checkout
-
       - run:
-          name: install dependencies
-          command: |
-            python3 -m venv venv
-            . venv/bin/activate
-            pip install -r requirements.txt
-      - run:
-          name: run tests
+          name: make migrations and run tests
           command: |
             . venv/bin/activate
-            python habit_api/manage.py test
-      - store_artifacts:
-          path: test-reports
-          destination: test-reports
+            python manage.py makemigrations todo_api
+            python manage.py migrate
+            python manage.py test
 
   deploy:
     docker:
       - image: circleci/python:latest
-      - image: circleci/mysql:5.7
 
     steps:
       - checkout
@@ -97,22 +72,21 @@ jobs:
           command: |
             . venv/bin/activate
             pip install awsebcli --upgrade
-            bash ./setub-eb.sh
+            bash ./setup-eb.sh
       - run:
           name: deploy
           command: |
             . venv/bin/activate
             eb deploy
+
 workflows:
   version: 2
   build-deploy:
     jobs:
       - build
-      # - test
       - deploy:
           requires:
             - build
-            # - test
           filters:
             branches:
               only: master
