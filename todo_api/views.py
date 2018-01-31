@@ -1,172 +1,141 @@
 import datetime
 
+from django.http import Http404
+from django.shortcuts import get_object_or_404
+
 from rest_framework import status
+from rest_framework.generics import GenericAPIView
+from rest_framework.mixins import CreateModelMixin, ListModelMixin, \
+    DestroyModelMixin, UpdateModelMixin
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from user_api.models import UserModel
 from todo_api.models import TodoModel
-from todo_api.serializers import TodoSerializer
+from todo_api.serializers import TodoSerializer, TodoListRequestSerializer, \
+    TodoCreateSerializer, TodoCreateRequestSerializer, TodoUpdateRequestSerializer
 
 
-class TodoView(APIView):
+class TodoView(ListModelMixin, GenericAPIView):
     def __str__(self):
         return 'TODO read view. Allowed Method : POST'
 
+    serializer_class = TodoListRequestSerializer
+
+    def list(self, request, *args, **kwargs):
+        if 'user' not in kwargs:
+            return Response({'error': 'User must be provided!'}, status=status.HTTP_400_BAD_REQUEST)
+
+        queryset = self.filter_queryset(self.get_queryset())
+        todo_lists = [self.get_serializer(query).data for query in queryset]
+        return Response({'user': kwargs['user'], 'todos': todo_lists})
+
     def post(self, request):
-        try:
-            user = UserModel.objects.get(id=request.data['user'])
-        except UserModel.DoesNotExist:
-            return Response({
-                'status': 400,
-                'error': 'User does not exist'
-            }, status=status.HTTP_400_BAD_REQUEST)
+        user = get_object_or_404(UserModel, id=request.data['user'])
+        month = request.data['month']
 
-        try:
-            todos = TodoModel.objects.filter(user=user).filter(
-                date__month=request.data['month']).filter(date__lte=datetime.date.today()).order_by('date')
-            response = {
-                'user': user.id,
-                'todos': list()
-            }
+        self.queryset = TodoModel.objects.filter(user=user).filter(
+            date__month=month).filter(date__lte=datetime.date.today())
 
-            for todo in todos:
-                found_todo = TodoSerializer(todo)
-                response['todos'].append(found_todo.data)
-
-            return Response(response, status=status.HTTP_200_OK)
-        except KeyError:
-            return Response({
-                'error': 'Month must be specified'
-            }, status=status.HTTP_400_BAD_REQUEST)
+        self.serializer_class = TodoSerializer
+        return self.list(request, user=user.id)
 
 
-class TodoCreateView(APIView):
+class TodoCreateView(CreateModelMixin, GenericAPIView):
     def __str__(self):
         return 'TODO create view. Allowed Method : POST'
 
+    serializer_class = TodoCreateRequestSerializer
+
+    def create(self, request, *args, **kwargs):
+        if 'end_date' not in kwargs:
+            return Response({'error': 'End date must be provided!'}, status=status.HTTP_400_BAD_REQUEST)
+
+        start_date = datetime.date.today()
+        current_date = start_date
+        while current_date <= kwargs['end_date']:
+            data = {
+                'user': request.data['user'],
+                'title': request.data['todo'],
+                'date': current_date,
+                'order': request.data['order']
+            }
+            new_todo_serializer = self.get_serializer(data=data)
+            new_todo_serializer.is_valid(raise_exception=True)
+            self.perform_create(new_todo_serializer)
+
+            current_date += datetime.timedelta(days=1)
+
+        result = {
+            'user': request.data['user'],
+            'title': request.data['todo'],
+            'start_date': start_date,
+            'end_date': kwargs['end_date'],
+            'order': request.data['order']
+        }
+        self.serializer_class = TodoCreateSerializer
+        result_serializer = self.get_serializer(data=result)
+        result_serializer.is_valid(raise_exception=True)
+        return Response(result_serializer.data, status=status.HTTP_201_CREATED)
+
     def post(self, request):
-        try:
-            user = UserModel.objects.get(id=request.data['user'])
-        except UserModel.DoesNotExist:
-            return Response({
-                'status': 400,
-                'error': 'User does not exist'
-            }, status=status.HTTP_400_BAD_REQUEST)
+        end_year, end_month, end_day = request.data['until'].values()
+        end_date = datetime.date(end_year, end_month, end_day)
 
-        if 'until' not in request.data:
-            new_todo = TodoModel(user=user, title=request.data['todo'], order=request.data['order'])
-            new_todo.save()
-
-            new_todo_serializer = TodoSerializer(new_todo)
-
-            response = {
-                'user': user.id,
-                'created': new_todo_serializer.data
-            }
-            return Response(response, status=status.HTTP_201_CREATED)
-        else:
-            year, month, day = request.data['until'].values()
-            date = datetime.date.today()
-            until = datetime.date(year, month, day)
-
-            response = {
-                'user': user.id,
-                'created': list()
-            }
-
-            while date <= until:
-                new_todo = TodoModel(
-                    user=user, title=request.data['todo'], date=date, order=request.data['order'])
-                new_todo.save()
-                new_todo_serializer = TodoSerializer(new_todo)
-                response['created'].append(new_todo_serializer.data)
-                date += datetime.timedelta(days=1)
-
-            return Response(response, status=status.HTTP_201_CREATED)
+        self.serializer_class = TodoSerializer
+        return self.create(request, end_date=end_date)
 
 
-class TodoUpdateView(APIView):
+class TodoUpdateView(UpdateModelMixin, GenericAPIView):
     def __str__(self):
         return 'TODO update view. Allowed Method : POST'
 
+    serializer_class = TodoUpdateRequestSerializer
+
+    def update(self, request, *args, **kwargs):
+        if 'user' not in kwargs:
+            return Response({'error': 'User must be provided!'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if 'title' in request.data['update']:
+            self.get_queryset().update(title=request.data['update']['title'])
+        if 'done' in request.data['update']:
+            self.get_queryset().update(done=request.data['update']['done'])
+
+        return Response(request.data)
+
     def post(self, request):
-        token = request.data['user']
-        todo_title = request.data['todo']
+        user = get_object_or_404(UserModel, id=request.data['user'])
+        self.queryset = TodoModel.objects.filter(user=user).filter(
+            title=request.data['todo']).filter(date=datetime.date.today())
 
-        try:
-            user = UserModel.objects.get(id=token)
-        except UserModel.DoesNotExist:
-            return Response({
-                'status': 400,
-                'error': 'User does not exist'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        user_id = user.id
-
-        try:
-            todo_model = TodoModel.objects.get(
-                title=todo_title, user=user_id, date=datetime.date.today())
-        except TodoModel.DoesNotExist:
-            return Response({
-                'status': 400,
-                'error': 'Todo does not exist'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        response = {
-            'user': user_id,
-            'updated': dict()
-        }
-
-        try:
-            updated_title = request.data['update']['title']
-            todo_model.title = updated_title
-            response['updated']['title'] = updated_title
-        except KeyError:
-            pass
-
-        try:
-            updated_done = request.data['update']['done']
-            todo_model.done = updated_done
-            response['updated']['done'] = updated_done
-        except KeyError:
-            pass
-
-        todo_model.save()
-        return Response(response, status=status.HTTP_200_OK)
+        return self.update(request, user=user)
 
 
-class TodoDeleteView(APIView):
+class TodoDeleteView(DestroyModelMixin, GenericAPIView):
     def __str__(self):
         return 'TODO delete view. Allowed Method : POST'
 
-    def post(self, request):
-        token = request.data['user']
-        todo_title = request.data['todo']
+    serializer_class = TodoSerializer
 
-        try:
-            user = UserModel.objects.get(id=token)
-        except UserModel.DoesNotExist:
-            return Response({
-                'status': 400,
-                'error': 'User does not exist'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        user_id = user.id
+    def destroy(self, request, *args, **kwargs):
+        if 'user' not in kwargs:
+            return Response({'error': 'User must be provided!'}, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            todo_model = TodoModel.objects.get(
-                title=todo_title, user=user_id, date=datetime.date.today())
-        except TodoModel.DoesNotExist:
-            return Response({
-                'status': 400,
-                'error': 'Todo does not exist'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        serializer = TodoSerializer(todo_model)
+        model = get_object_or_404(self.get_queryset())
         response = {
-            'user': user_id,
-            'deleted': serializer.data
+            'user': kwargs['user'].id,
+            'deleted': self.get_serializer(model).data
         }
 
-        todo_model.delete()
+        model.delete()
+        return Response(response, status=status.HTTP_204_NO_CONTENT)
 
-        return Response(response, status=status.HTTP_200_OK)
+    def post(self, request):
+        user = get_object_or_404(UserModel, id=request.data['user'])
+
+        try:
+            self.queryset = TodoModel.objects.filter(user=user).filter(
+                title=request.data['title']).get(date=datetime.date.today())
+        except TodoModel.DoesNotExist:
+            raise Http404('Provided todo model does not exist.')
+
+        return self.destroy(request, user=user)
