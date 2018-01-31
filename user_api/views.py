@@ -1,23 +1,33 @@
-from rest_framework import status
+from rest_framework import mixins, status
+from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from user_api.models import UserModel
 from user_api.serializers import UserSerializer
 
 
-class UserView(APIView):
-    def post(self, request):
-        print(request.data)
-        print(request.POST)
-        token = request.data['user']
+class UserView(mixins.CreateModelMixin, mixins.RetrieveModelMixin, GenericAPIView):
+    """
+    View for users.
+    Lists the detail of user if user does exist, creates user if does not
+    """
 
+    serializer_class = UserSerializer
+
+    def retrieve(self, request, *args, **kwargs):
         try:
-            user_model = UserModel.objects.get(id=token)
-            user_serializer = UserSerializer(instance=user_model)
-            return Response(user_serializer.data)
+            model = UserModel.objects.get(id=request.data['id'])
+            serializer = self.get_serializer(model)
+            return Response(serializer.data)
         except UserModel.DoesNotExist:
-            new_model = UserModel(id=token)
-            new_model.save()
-            user_serializer = UserSerializer(instance=new_model)
-            return Response(user_serializer.data, status=status.HTTP_201_CREATED)
+            return self.create(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        try:
+            data = request.data['id']
+            if data == '':
+                return Response({'error': 'user id must be provided'}, status=status.HTTP_400_BAD_REQUEST)
+        except KeyError:
+            return Response({'error': 'user id must be provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+        return self.retrieve(request, *args, **kwargs)

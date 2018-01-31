@@ -38,10 +38,6 @@ jobs:
           name: make migrations and run tests
           command: |
             . venv/bin/activate
-            python manage.py makemigrations user_api --settings=habit_api_django.settings.dev
-            python manage.py makemigrations collections_api --settings=habit_api_django.settings.dev
-            python manage.py makemigrations todo_api --settings=habit_api_django.settings.dev
-            python manage.py migrate --settings=habit_api_django.settings.dev
 
   deploy:
     docker:
@@ -78,7 +74,6 @@ jobs:
           name: deploy
           command: |
             . venv/bin/activate
-            bash ./migrate.sh
             eb deploy
 
 workflows:

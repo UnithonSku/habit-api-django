@@ -1,7 +1,10 @@
 import datetime
+
 from django.test import TestCase
+
 from rest_framework import status
 from rest_framework.test import APIRequestFactory
+
 from user_api.models import UserModel
 from todo_api.models import TodoModel
 from todo_api.views import TodoView, TodoCreateView, TodoUpdateView, TodoDeleteView
