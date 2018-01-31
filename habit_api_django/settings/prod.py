@@ -4,7 +4,6 @@ DEBUG = False
 
 ALLOWED_HOSTS = [
     'habitapidjango-env.ap-northeast-2.elasticbeanstalk.com',
-    '127.0.0.1',
 ]
 
 DATABASES = {
